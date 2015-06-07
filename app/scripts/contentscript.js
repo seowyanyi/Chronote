@@ -1,9 +1,9 @@
 'use strict';
 //////////////////// CONSTANTS ///////////////////
-var STORAGE_SERIALIZED_STRING = "serializedString";
 var STORAGE_HIGHLIGHT_MODE = "highlightMode";
 var HIGHLIGHT_CLASS = "chronoteHighlight";
 var HIGHLIGHT_COLOR = "yellow";
+var DEFAULT_COLOR = "transparent";
 /////////////////////////////////////////////////
 
 var rangy = require('rangy');
@@ -13,13 +13,11 @@ var StorageArea = chrome.storage.local;
 var highlighter;
 
 
-console.log('\'Allo \'Allo! Content script test');
-
 rangy.init();
 initHighlighter();
 restoreHighlights();
-document.addEventListener("click", highlightIfNeeded, false);
-
+addClearAllListener();
+addClickEventListener();
 
 
 
@@ -32,15 +30,21 @@ function initHighlighter() {
 }
 
 function restoreHighlights() {
-    StorageArea.get(STORAGE_SERIALIZED_STRING, function(items) {
-        if (items[STORAGE_SERIALIZED_STRING]) {
-            highlighter.deserialize(items[STORAGE_SERIALIZED_STRING]);
-            styleHighlightedText();
-        }
+    chrome.runtime.sendMessage({getCurrentUrl: true}, function(response) {
+        var url = response.currentUrl;
+        StorageArea.get(url, function(items) {
+            var serializedHighlight = items[url];
+            if (serializedHighlight != null && serializedHighlight != "type:textContent" ) {
+                highlighter.deserialize(serializedHighlight);
+                styleHighlightedText();
+            }
+        });
     });
 }
 
 function highlightIfNeeded() {
+    //todo: check if there is anything new to store
+
     StorageArea.get(STORAGE_HIGHLIGHT_MODE, function(items) {
         if (items[STORAGE_HIGHLIGHT_MODE]) {
             highlighter.highlightSelection(HIGHLIGHT_CLASS);
@@ -51,9 +55,21 @@ function highlightIfNeeded() {
 }
 
 function storeHighlights(serializedString) {
-    var highlights = {};
-    highlights[STORAGE_SERIALIZED_STRING] = serializedString;
-    StorageArea.set(highlights);
+    // content scripts cannot use chrome.tabs
+    // got to ask background scripts to do it for us
+    chrome.runtime.sendMessage({getCurrentUrl: true}, function(response) {
+        var highlights = {};
+        highlights[response.currentUrl] = serializedString;
+        StorageArea.set(highlights);
+    });
+}
+
+function clearStoredHighlights() {
+    chrome.runtime.sendMessage({getCurrentUrl: true}, function(response) {
+        console.log('------------------');
+        StorageArea.remove(response.currentUrl);
+        highlighter.removeAllHighlights();
+    });
 }
 
 function styleHighlightedText() {
@@ -64,3 +80,38 @@ function styleHighlightedText() {
     }
 }
 
+function unstyleHighlightedText() {
+    var elements = document.getElementsByClassName(HIGHLIGHT_CLASS);
+
+    for (var i=0; i < elements.length; ++i) {
+        elements[i].style.backgroundColor = DEFAULT_COLOR;
+    }
+}
+
+function addClickEventListener() {
+    document.addEventListener("click", highlightIfNeeded, false);
+}
+
+function addClearAllListener() {
+    chrome.runtime.onMessage.addListener(
+        function(request, sender, sendResponse) {
+
+            if (request.clearAll) {
+                clearAllHighlights();
+            }
+        });
+}
+
+function clearAllHighlights() {
+    unstyleHighlightedText();
+    clearStoredHighlights();
+}
+
+// for debugging purposes
+function printEntireStorage() {
+    StorageArea.get(null, function(items) {
+        for (var x in items) {
+            console.log(x + " : " + items[x]);
+        }
+    });
+}

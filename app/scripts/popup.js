@@ -9,6 +9,16 @@ initButton();
 
 console.log('\'Allo \'Allo! Popup access test');
 document.getElementById("toggleButton").addEventListener("click",toggleMode);
+document.getElementById("clearAllButton").addEventListener("click",sendClearMsg);
+
+
+// Tells content script to clear all highlights
+function sendClearMsg() {
+    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+        chrome.tabs.sendMessage(tabs[0].id, {clearAll: true});
+    });
+}
+
 
 function initButton() {
     StorageArea.get(STORAGE_HIGHLIGHT_MODE, function(items) {
