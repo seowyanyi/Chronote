@@ -3,13 +3,12 @@
 var rangy = require('rangy');
 var highlighterMod = require('../../node_modules/rangy/lib/rangy-highlighter.js');
 var classapplierMod = require('../../node_modules/rangy/lib/rangy-classapplier.js');
+var StorageArea = chrome.storage.local;
 
 
 console.log('\'Allo \'Allo! Content script test');
 
 rangy.init();
-
-console.log(rangy);
 
 var highlighter = rangy.createHighlighter();
 
@@ -18,15 +17,20 @@ highlighter.addClassApplier(rangy.createClassApplier("highlight", {
     tagNames: ["span", "a"]
 }));
 
+document.addEventListener("click", highlightIfNeeded, false);
+
+function highlightIfNeeded() {
+    StorageArea.get("highlight", function(items) {
+        console.log('local storage: ' + items.highlight);
+        if (items.highlight) {
+            highlightSelectedText();
+        }
+    });
+
+}
+
 function highlightSelectedText() {
-
     highlighter.highlightSelection("highlight");
-    //var style = document.createElement('link');
-    //style.rel = 'stylesheet';
-    //style.type = 'text/css';
-    //style.href = chrome.extension.getURL('highlight.css');
-    //(document.head||document.documentElement).appendChild(style);
-
     var elements = document.getElementsByClassName("highlight");
 
     for (var i=0; i < elements.length; ++i) {
@@ -34,8 +38,5 @@ function highlightSelectedText() {
     }
 
     console.log("clicked and highlighted");
-
 }
 
-
-setTimeout(highlightSelectedText, 6000);
