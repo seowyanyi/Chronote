@@ -1,3 +1,10 @@
+/**
+ * Chronote - google-docs-like editing on web pages
+ * https://github.com/seowyanyi/Chronote
+ *
+ * Copyright 2015, Seow Yan Yi
+ * Licensed under the MIT license.
+ */
 'use strict';
 
 chrome.runtime.onInstalled.addListener(function (details) {
