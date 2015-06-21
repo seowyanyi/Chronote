@@ -7,14 +7,15 @@
     "tabs",
     "activeTab",
     "storage",
+    "unlimitedStorage",
     "http://*/",
     "https://*/"
   ],
   "commands": {
     "toggleMode": {
       "suggested_key": {
-        "default": "Ctrl+Y",
-        "mac": "Command+Y"
+        "default": "Ctrl+Q",
+        "mac": "Command+Q"
       },
       "description": "Toggle highlight mode"
     }
