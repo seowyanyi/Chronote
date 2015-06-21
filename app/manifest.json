@@ -10,6 +10,15 @@
     "http://*/",
     "https://*/"
   ],
+  "commands": {
+    "toggleMode": {
+      "suggested_key": {
+        "default": "Ctrl+Y",
+        "mac": "Command+Y"
+      },
+      "description": "Toggle highlight mode"
+    }
+  },
   "icons": {
     "16": "images/icon-16.png",
     "128": "images/icon-128.png"

@@ -18,8 +18,7 @@ initHighlighter();
 restoreHighlights();
 addClearAllListener();
 addClickEventListener();
-
-
+addToggleModeListener();
 
 function initHighlighter() {
     highlighter = rangy.createHighlighter();
@@ -100,6 +99,30 @@ function addClearAllListener() {
                 clearAllHighlights();
             }
         });
+}
+
+function addToggleModeListener() {
+    chrome.runtime.onMessage.addListener(
+        function(request, sender, sendResponse) {
+            console.log('requested');
+            if (request.action === "toggleMode") {
+                toggleMode(); //todo: share code with popup.js
+            }
+        });
+}
+
+function toggleMode() {
+    StorageArea.get(STORAGE_HIGHLIGHT_MODE, function(items) {
+        var newState = !items[STORAGE_HIGHLIGHT_MODE];
+        saveState(newState);
+    });
+}
+
+function saveState(state) {
+    var newState = {};
+    newState[STORAGE_HIGHLIGHT_MODE] = state;
+
+    StorageArea.set(newState);
 }
 
 function clearAllHighlights() {

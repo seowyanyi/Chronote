@@ -22,27 +22,21 @@ function sendClearMsg() {
 
 function initButton() {
     StorageArea.get(STORAGE_HIGHLIGHT_MODE, function(items) {
-        console.log(items);
-
         setButtonText(items.highlightMode);
     });
 }
 
 function toggleMode() {
     StorageArea.get(STORAGE_HIGHLIGHT_MODE, function(items) {
-        console.log(items);
-        console.log(items[STORAGE_HIGHLIGHT_MODE]);
         var newState = !items[STORAGE_HIGHLIGHT_MODE];
-
-        setStorage(newState);
+        saveState(newState);
         setButtonText(newState);
     });
 }
 
-function setStorage(state) {
+function saveState(state) {
     var newState = {};
     newState[STORAGE_HIGHLIGHT_MODE] = state;
-
     StorageArea.set(newState);
 }
 

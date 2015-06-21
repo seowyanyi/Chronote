@@ -13,7 +13,15 @@ chrome.runtime.onMessage.addListener(
         console.log(sender.tab ?
         "from a content script:" + sender.tab.url :
             "from the extension");
-        if (request.getCurrentUrl) {
-            sendResponse({currentUrl: sender.tab.url});
-        }
+        //if (request.getCurrentUrl) {
+        //    sendResponse({currentUrl: sender.tab.url});
+        //}
     });
+
+chrome.commands.onCommand.addListener(function(command) {
+    if (command === "toggleMode") {
+        chrome.tabs.query({active: true, currentWindow: true}, function(tabs){
+            chrome.tabs.sendMessage(tabs[0].id, {action: "toggleMode"}, function(response) {});
+        });
+    }
+});
