@@ -48,8 +48,14 @@
       "js": [
         "scripts/bundle.js"
       ],
+      "css": [
+        "styles/highlighter.css"
+      ],
       "run_at": "document_end",
       "all_frames": false
     }
+  ],
+  "web_accessible_resources": [
+    "images/closemarker.png"
   ]
 }

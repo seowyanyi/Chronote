@@ -1,0 +1,24 @@
+.chronoteHighlight {
+    background-color: #8BF57D;
+    padding: 2px 0;
+}
+
+a.txtsel_close, .chronoteHighlight a.txtsel_close {
+    display:none;
+}
+
+.chronoteHighlight .closewrap, .chronoteHighlight .closewrap {
+    position: relative;
+}
+.chronoteHighlight.hover a.txtsel_close, .chronoteHighlight.hover a.txtsel_close {
+    display: inline-block;
+    position: absolute;
+    top: -7px;
+    left: -5px;
+    width: 33px;
+    height: 33px;
+    background: url('chrome-extension://__MSG_@@extension_id__/images/closemarker.png') -0px -0px no-repeat;
+}
+.chronoteHighlight.hover a.txtsel_close:hover, .chronoteHighlight.hover a.txtsel_close:hover {
+    background-position: -0px -33px;
+}
