@@ -14,7 +14,7 @@ var masha = require('./Masha.js');
 //////////////////// CONSTANTS ///////////////////
 var STORAGE_HIGHLIGHT_MODE = "highlightMode";
 var DEBOUNCE_LIMIT = 500;
-var RESTORE_BUFFER_INTERVAL = 1000;
+var RESTORE_BUFFER_INTERVAL = 700;
 var MAX_RESTORE_ATTEMPTS = 3;
 /////////////////////////////////////////////////
 //////////////////// GLOBALS ////////////////////
@@ -22,6 +22,7 @@ var StorageArea = chrome.storage.local;
 var lastHighlight = 0; // for debouncing purposes
 var highlightsOnPage = [];
 var restoreAttempts = {}; // keep track of misbehaving deserializations
+var failedRestorations = [];
 /////////////////////////////////////////////////
 
 rangy.init();
@@ -46,70 +47,70 @@ function isDebounceFail() {
 function restoreHighlights() {
     var url = window.location.href;
     StorageArea.get(url, function(items) {
-        var savedSelectionsArr = items[url] || [];
-
-        for (var i=0; i < savedSelectionsArr.length; ++i) {
-            restoreAttempts[savedSelectionsArr[i]] = 0;
+        highlightsOnPage = items[url] || [];
+        for (var i=0; i < highlightsOnPage.length; ++i) {
+            restoreAttempts[highlightsOnPage[i]] = 0;
         }
-
-        restore(savedSelectionsArr);
+        restore(highlightsOnPage);
     });
 }
 
 function restore(sels) { // todo: finish this
-    var failedRestorations = [];
+    failedRestorations = [];
     for (var i = 0; i < sels.length; ++i) {
-        if (restoreAttempts[sels[i]] === MAX_RESTORE_ATTEMPTS) {
+        var currSel = sels[i];
+        if (restoreAttempts[currSel] === MAX_RESTORE_ATTEMPTS) {
             // current highlight corrupted. Possibly due to change in DOM/contents.
-            console.log('max');
             // todo: inform user
-            // todo: clear only the corrupted highlight
+            deleteHighlight(currSel);
             continue;
         }
-        console.log(sels[i] + '  ATTEMPTS: ' + restoreAttempts[sels[i]]);
 
-        restoreAttempts[sels[i]]++;
+        restoreAttempts[currSel]++;
 
         try {
-            // Not using rangy.canDeserializeSelection as it isn't accurate.
-            var sel = rangy.deserializeSelection(sels[i]);
+            var sel = rangy.deserializeSelection(currSel);
             masha.highlightSelection(sel);
         } catch (err) {
-            failedRestorations.push(sels[i]);
+            failedRestorations.push(currSel);
         }
     }
 
     if (failedRestorations.length > 0) {
         //Try again after a short while. Some elements might not have loaded
-        setTimeout(restore(failedRestorations), RESTORE_BUFFER_INTERVAL);
+        setTimeout(function() {
+            restore(failedRestorations);
+        }, RESTORE_BUFFER_INTERVAL);
     }
+}
+
+function deleteHighlight(sel) {
+    delete highlightsOnPage[sel];
+    storeHighlights(highlightsOnPage);
+}
+
+function highlight(sel) {
+    var serializedSel = masha.highlightSelection(sel);
+    highlightsOnPage.push(serializedSel);
 }
 
 function highlightIfNeeded(e) {
     var sel = rangy.getSelection();
-    if (isNotSelectable(e.target.nodeName, sel)) { return;}
+    if (e.target.nodeName == 'INPUT') { return; }
     if (isDebounceFail()) { return;}
 
     StorageArea.get(STORAGE_HIGHLIGHT_MODE, function(items) {
         if (items[STORAGE_HIGHLIGHT_MODE]) {
-            var serializedSel = masha.highlightSelection(sel);
-            highlightsOnPage.push(serializedSel);
-            storeHighlights(highlightsOnPage);
+            try {
+                highlight(sel);
+                storeHighlights(highlightsOnPage);
+            } catch (err) {
+
+            }
         }
     });
 }
 
-
-/**
- * Checks whether a selection is valid
- * @param nodeName, the name of the event node
- * @param sel, the rangy (or native) selection object
- * @returns true if we are in a input field or if the selection does not have text
- */
-function isNotSelectable(nodeName, sel) {
-    var trimmed = sel.toString().replace(/\s/g, "") ; // remove whitespace
-    return nodeName == 'INPUT' || trimmed == '' || trimmed == undefined;
-}
 
 /**
  * Given an array of serialized highlights, store into chromes' local storage
@@ -149,16 +150,17 @@ function toggleMode() {
 function saveState(state) {
     var newState = {};
     newState[STORAGE_HIGHLIGHT_MODE] = state;
-
     StorageArea.set(newState);
 }
 
 function clearCurrentHighlights() {
     StorageArea.remove(window.location.href);
+    location.reload(); //todo: clear w/o reloading
 }
 
 function clearAllHighlights() {
     StorageArea.clear();
+    location.reload(); //todo: clear w/o reloading
 }
 
 // for debugging purposes

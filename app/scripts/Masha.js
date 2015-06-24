@@ -19,18 +19,45 @@
     var REGEXP = "[^\\s,;:\u2013.!?<>\u2026\\n\u00a0\\*]+";
     var HIGHLIGHT_CLASS = "chronoteHighlight";
 
-    function highlightSelection(sel) {
-        var range = getFirstRange(sel.nativeSelection);
+    function highlightSelection(rangySel) {
+        var range = getFirstRange(rangySel.nativeSelection);
+        if (!rangeIsSelectable) { return; }
+
         range = checkSelection(range);
         range = mergeSelections(range);
 
         // serializedSel serves two purposes:
         // 1. to act as a unique class name,
         // 2. for data persistence
-        var serializedSel = rangy.serializeSelection(sel, true);
+        var serializedSel = rangy.serializeSelection(rangySel, true);
         range.wrapSelection(serializedSel + ' ' + HIGHLIGHT_CLASS);
         addSelectionEvents(serializedSel);
         return serializedSel;
+    }
+
+    function rangeIsSelectable(range) {
+        var node, firstNode, lastNode, first=true;
+        if (!range) { return false; }
+        var iterator = range.getElementIterator();
+        while ((node = iterator())){
+            if (node.nodeType == 3 && node.data.match(REGEXP) != null){
+                // first and last TEXT nodes
+                firstNode = firstNode || node;
+                lastNode = node;
+            }
+            // We need to check first element. Text nodes are not checked, so we replace
+            // it for it's parent.
+            node = (first && node.nodeType == 3)? node.parentNode : node;
+            first = false;
+        }
+        var first_selection = parentWithClass(firstNode, HIGHLIGHT_CLASS);
+        var last_selection = parentWithClass(lastNode, HIGHLIGHT_CLASS);
+        if (first_selection && last_selection){
+            var reg = /\d+\/[^\s]+/;
+            return (reg.exec(first_selection.className)[1] !=
+            reg.exec(last_selection.className)[1]);
+        }
+        return true;
     }
 
     function checkSelection(range) {
@@ -291,15 +318,15 @@
         var iterator = range.getElementIterator();
         var node = iterator();
         var last = node;
-        var parent_ = parentWithClass(node, 'user_selection_true');
+        var parent_ = parentWithClass(node, HIGHLIGHT_CLASS);
         if (parent_) {
-            parent_ = /(num\d+)(?:$| )/.exec(parent_.className)[1];
+            parent_ = /\d+\/[^\s]+/.exec(parent_.className)[1];
             range.setStart(firstTextNode(firstWithClass(document, parent_)), 0);
             merges.push(parent_);
         }
         while (node) {
-            if (node.nodeType == 1 && hasClass(node, 'user_selection_true')) {
-                var cls = /(num\d+)(?:$|)/.exec(node.className)[0];
+            if (node.nodeType == 1 && hasClass(node, HIGHLIGHT_CLASS)) {
+                var cls = /\d+\/[^\s]+/.exec(node.className)[0];
                 if (inArray(cls, merges) == -1) {
                     merges.push(cls);
                 }
@@ -307,9 +334,9 @@
             last = node;
             node = iterator();
         }
-        last = parentWithClass(last, 'user_selection_true');
+        last = parentWithClass(last, HIGHLIGHT_CLASS);
         if (last) {
-            last = /(num\d+)(?:$| )/.exec(last.className)[1];
+            last = /\d+\/[^\s]+/.exec(last.className)[1];
             var tnodes = textNodes(lastWithClass(document, last)); // XXX lastTextNode
             var lastNode = tnodes[tnodes.length - 1];
             range.setEnd(lastNode, lastNode.length);
