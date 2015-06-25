@@ -101,7 +101,7 @@ function highlight(sel) {
 
 function highlightIfNeeded(e) {
     var sel = rangy.getSelection();
-    if (e.target.nodeName == 'INPUT') { return; }
+    if (e.target.nodeName == 'INPUT' || e.target.nodeName == 'TEXTAREA') { return; }
     if (isDebounceFail()) { return;}
 
     StorageArea.get(STORAGE_HIGHLIGHT_MODE, function(items) {
