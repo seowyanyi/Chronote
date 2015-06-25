@@ -18,10 +18,11 @@
 
     var REGEXP = "[^\\s,;:\u2013.!?<>\u2026\\n\u00a0\\*]+";
     var HIGHLIGHT_CLASS = "chronoteHighlight";
+    var StorageArea = chrome.storage.local;
 
     function highlightSelection(rangySel) {
         var range = getFirstRange(rangySel.nativeSelection);
-        if (!rangeIsSelectable) { return; }
+        if (!rangeIsSelectable(range)) { return; }
 
         range = checkSelection(range);
         range = mergeSelections(range);
@@ -398,6 +399,27 @@
         }
     }
 
+    function removeFromStorage(sel) { //todo: merge with contenscript.js' method
+        var url = window.location.href;
+        StorageArea.get(url, function(items) {
+            var curHighlights = items[url] || [];
+            var index = curHighlights.indexOf(sel);
+
+            if (index > -1) {
+                curHighlights.splice(index, 1);
+            }
+            storeHighlights(curHighlights);
+        })
+    }
+
+
+
+    function storeHighlights(array) { //todo: merge with contenscript.js' method
+        var highlights = {};
+        highlights[window.location.href] = array;
+        StorageArea.set(highlights);
+    }
+
     // XXX sort methods logically
     function deleteSelections(numclasses) {
         for (var i = numclasses.length; i--;) {
@@ -405,8 +427,8 @@
             var spans = byClassName(document, numclass);
             var closewrap = firstWithClass(spans[spans.length - 1], 'closewrap');
             closewrap.parentNode.removeChild(closewrap);
-
             removeTextSelection(spans);
+            removeFromStorage(numclass);
         }
     }
 
@@ -483,7 +505,6 @@
         addEvent(closer, 'click', function (e) {
             preventDefault(e);
             deleteSelections([class_name]);
-
         });
 
         if (wrappers[wrappers.length - 1] != undefined) {

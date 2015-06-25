@@ -8,8 +8,8 @@
 'use strict';
 
 var rangy = require('rangy');
-var require_rangy_serializer = require('../../node_modules/rangy/lib/rangy-serializer.js');
 var masha = require('./Masha.js');
+var require_rangy_serializer = require('../../node_modules/rangy/lib/rangy-serializer.js');
 
 //////////////////// CONSTANTS ///////////////////
 var STORAGE_HIGHLIGHT_MODE = "highlightMode";
@@ -55,14 +55,14 @@ function restoreHighlights() {
     });
 }
 
-function restore(sels) { // todo: finish this
+function restore(sels) {
     failedRestorations = [];
     for (var i = 0; i < sels.length; ++i) {
         var currSel = sels[i];
         if (restoreAttempts[currSel] === MAX_RESTORE_ATTEMPTS) {
-            // current highlight corrupted. Possibly due to change in DOM/contents.
+            // current highlight corrupted.
             // todo: inform user
-            deleteHighlight(currSel);
+            deleteHighlightFromStorage(currSel);
             continue;
         }
 
@@ -72,6 +72,7 @@ function restore(sels) { // todo: finish this
             var sel = rangy.deserializeSelection(currSel);
             masha.highlightSelection(sel);
         } catch (err) {
+            console.log(err);
             failedRestorations.push(currSel);
         }
     }
@@ -84,10 +85,14 @@ function restore(sels) { // todo: finish this
     }
 }
 
-function deleteHighlight(sel) {
-    delete highlightsOnPage[sel];
+function deleteHighlightFromStorage(sel) {
+    var index = highlightsOnPage.indexOf(sel);
+    if (index > -1) {
+        highlightsOnPage.splice(index, 1);
+    }
     storeHighlights(highlightsOnPage);
 }
+
 
 function highlight(sel) {
     var serializedSel = masha.highlightSelection(sel);
@@ -105,7 +110,7 @@ function highlightIfNeeded(e) {
                 highlight(sel);
                 storeHighlights(highlightsOnPage);
             } catch (err) {
-
+                console.log(err);
             }
         }
     });
@@ -165,9 +170,13 @@ function clearAllHighlights() {
 
 // for debugging purposes
 function printEntireStorage() {
-    StorageArea.get(null, function(items) {
-        for (var x in items) {
-            console.log(x + " : " + items[x]);
+    var url = window.location.href;
+    StorageArea.get(url, function(items) {
+        var arr = items[url] || [];
+        for (var i=0; i < arr.length; ++i) {
+            console.log('==============================');
+            console.log(arr[i]);
+            console.log('==============================');
         }
     });
 }
