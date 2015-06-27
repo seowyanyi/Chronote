@@ -50,13 +50,17 @@
         "scripts/bundle.js"
       ],
       "css": [
-        "styles/highlighter.css"
+        "styles/highlighter.css",
+        "styles/comments.css",
+        "styles/lib/bootstrap.min.css",
+        "styles/lib/bootstrap-theme.min.css"
       ],
       "run_at": "document_end",
       "all_frames": false
     }
   ],
   "web_accessible_resources": [
-    "images/closemarker.png"
+    "images/closemarker.png",
+    "comments.html"
   ]
 }

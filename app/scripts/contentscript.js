@@ -6,11 +6,11 @@
  * Licensed under the MIT license.
  */
 'use strict';
-
+var $ = require('jquery');
 var rangy = require('rangy');
 var masha = require('./Masha.js');
-var require_rangy_serializer = require('../../node_modules/rangy/lib/rangy-serializer.js');
-
+require('../../node_modules/rangy/lib/rangy-serializer.js');
+require('./lib/pep.js');
 //////////////////// CONSTANTS ///////////////////
 var STORAGE_HIGHLIGHT_MODE = "highlightMode";
 var DEBOUNCE_LIMIT = 500;
@@ -30,6 +30,16 @@ rangy.init();
 addChromeListeners();
 addDOMListeners();
 
+
+$.get(chrome.extension.getURL('/comments.html'), function(data) {
+    $(data).appendTo('body');
+});
+
+$(document).ready(function() {
+    setTimeout(function() {
+        $('.detailBox').pep();
+    }, 2000);
+});
 
 /**
  * Debounce necessary because certain user actions result
