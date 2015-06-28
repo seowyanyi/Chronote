@@ -1,16 +1,22 @@
-.detailBox {
+.commentBox {
     width:320px;
     border:1px solid #bbb;
     margin:50px;
     position: absolute;
     right: 100px;
     top: 50px;
-    z-index: 99999;
 }
+/*todo: change to minimize button*/
+.close {
+    vertical-align: middle;
+    right: 10px;
+}
+
 .titleBox {
     background-color:#fdfdfd;
-    padding:10px;
+    padding:5px;
     cursor: move;
+    min-height: 30px;
 }
 .titleBox label{
     color:#444;
@@ -18,15 +24,10 @@
     display:inline-block;
 }
 
-.commentBox {
-    background-color:#fdfdfd;
-    padding:10px;
-    border-top:1px dotted #bbb;
-}
-.commentBox .form-group:first-child, .actionBox .form-group:first-child {
+.form-group:first-child, .actionBox .form-group:first-child {
     width:80%;
 }
-.commentBox .form-group:nth-child(2), .actionBox .form-group:nth-child(2) {
+.form-group:nth-child(2), .actionBox .form-group:nth-child(2) {
     width:18%;
 }
 .actionBox .form-group * {

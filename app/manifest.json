@@ -37,9 +37,9 @@
       "16": "images/icon_016.png"
     },
     "default_title": "Chronote",
-    "default_popup": "popup.html"
+    "default_popup": "html/popup.html"
   },
-  "options_page": "options.html",
+  "options_page": "html/options.html",
   "content_scripts": [
     {
       "matches": [
@@ -61,6 +61,7 @@
   ],
   "web_accessible_resources": [
     "images/closemarker.png",
-    "comments.html"
+    "html/commentBox.mustache",
+    "html/comment.mustache"
   ]
 }

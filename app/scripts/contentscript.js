@@ -9,6 +9,7 @@
 var $ = require('jquery');
 var rangy = require('rangy');
 var masha = require('./Masha.js');
+var Mustache = require('mustache');
 require('../../node_modules/rangy/lib/rangy-serializer.js');
 require('./lib/pep.js');
 //////////////////// CONSTANTS ///////////////////
@@ -26,20 +27,88 @@ var failedRestorations = [];
 /////////////////////////////////////////////////
 
 rangy.init();
-//setTimeout(restoreHighlights, 0); // need to wait for chrome StorageArea to be ready. //todo: is there another way?
-addChromeListeners();
-addDOMListeners();
+//addChromeListeners();
+//addDOMListeners();
 
 
-$.get(chrome.extension.getURL('/comments.html'), function(data) {
-    $(data).appendTo('body');
-});
 
 $(document).ready(function() {
     setTimeout(function() {
-        $('.detailBox').pep();
+        addChromeListeners();
+
+        $.get(chrome.extension.getURL('/html/comment.mustache'), function(comment) {
+            var view = {
+                image: 'http://seowyanyi.org/images/profilepic.jpg',
+                text: 'nima veniam, quis nostrum exercitationem ullam corp ',
+                date: '28 Jun'
+            };
+            var renderedList = {};
+            renderedList["comments"] = [];
+            renderedList["comments"].push(Mustache.render(comment, view));
+            $.get(chrome.extension.getURL('/html/commentBox.mustache'), function(commentBox) {
+                var rendered = Mustache.render(commentBox, renderedList);
+                $(rendered).appendTo('body');
+                $('.commentBox').pep();
+            });
+        });
+        setTimeout(function() {
+            addDOMListeners();
+        }, 1000);
+
+
     }, 2000);
 });
+
+
+function addComment(image, msg, date) {
+    var view = {
+        image: image,
+        text: msg,
+        date: date
+    };
+    $.get(chrome.extension.getURL('/html/comment.mustache'), function(comment) {
+        $(".commentList").append(Mustache.render(comment, view));
+    });
+}
+
+function fuzzyDate(time){
+    var SECS_IN_MIN = 60;
+    var SECS_IN_HOUR = 3600;
+    var SECS_IN_DAY = 86400;
+    var SECS_IN_WEEK = SECS_IN_DAY * 7;
+    var SECS_IN_TWO_MINS = SECS_IN_MIN * 2;
+    var SECS_IN_TWO_HOURS = SECS_IN_HOUR * 2;
+    var SECS_IN_TWO_DAYS = SECS_IN_DAY * 2;
+
+    var curDate = new Date();
+    var timeDiff = curDate.getTime()/1000 - time.getTime()/1000;
+    var dayDiff = Math.floor(timeDiff / SECS_IN_DAY);
+    var fuzzyStr;
+    if (timeDiff < SECS_IN_MIN) {
+        fuzzyStr = "just now";
+    } else if (timeDiff < SECS_IN_TWO_MINS) {
+        fuzzyStr = "1 min ago";
+    } else if (timeDiff < SECS_IN_HOUR) {
+        fuzzyStr = Math.floor(timeDiff / SECS_IN_MIN) + " mins ago";
+    } else if (timeDiff < SECS_IN_TWO_HOURS) {
+        fuzzyStr = "1 hour ago";
+    } else if (timeDiff < SECS_IN_DAY) {
+        fuzzyStr = Math.floor(timeDiff / SECS_IN_HOUR) + " hours ago";
+    } else if (timeDiff < SECS_IN_TWO_DAYS) {
+        fuzzyStr = "Yesterday";
+    } else if (timeDiff < SECS_IN_WEEK) {
+        fuzzyStr = Math.floor(timeDiff / SECS_IN_DAY) + " days ago";
+    } else {
+        fuzzyStr = time.toDateString();
+    }
+    return fuzzyStr;
+}
+
+
+
+//$.get(chrome.extension.getURL('/comment.mustache'), function(data) {
+//    $(data).appendTo('body');
+//});
 
 /**
  * Debounce necessary because certain user actions result
@@ -140,6 +209,15 @@ function storeHighlights(array) {
 function addDOMListeners() {
     document.addEventListener("mouseup", highlightIfNeeded, false);
     window.addEventListener('load', restoreHighlights, false);
+
+    $('#commentBtn').click(function() {
+        var value = $('#commentForm').val();
+        if ($.trim(value).length == 0) {
+            return;
+        }
+
+        addComment("http://lorempixel.com/50/50/people/7",value, fuzzyDate(new Date()));
+    });
 }
 
 function addChromeListeners() {

@@ -1,7 +1,9 @@
 {
   "name": "chronote",
   "version": "0.0.0",
-  "dependencies": {},
+  "dependencies": {
+    "mustache": "^2.1.2"
+  },
   "devDependencies": {
     "grunt": "~0.4.1",
     "grunt-contrib-copy": "~0.5.0",
