@@ -30,8 +30,6 @@ rangy.init();
 //addChromeListeners();
 //addDOMListeners();
 
-
-
 $(document).ready(function() {
     setTimeout(function() {
         addChromeListeners();
@@ -48,7 +46,10 @@ $(document).ready(function() {
             $.get(chrome.extension.getURL('/html/commentBox.mustache'), function(commentBox) {
                 var rendered = Mustache.render(commentBox, renderedList);
                 $(rendered).appendTo('body');
-                $('.commentBox').pep();
+                $('.commentBox').pep({
+                    cssEaseDuration: 600,
+                    velocityMultiplier: 1
+                });
             });
         });
         setTimeout(function() {
