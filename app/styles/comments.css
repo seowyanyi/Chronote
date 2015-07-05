@@ -5,6 +5,7 @@
     position: absolute;
     right: 100px;
     top: 50px;
+    z-index: 10000000;
 }
 /*todo: change to minimize button*/
 .close {
