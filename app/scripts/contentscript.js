@@ -10,7 +10,6 @@ var $ = require('jquery');
 var masha = require('./Masha');
 var comment = require('./comment');
 var datetime = require('./datetime');
-require('./lib/pep');
 //////////////////// CONSTANTS ///////////////////
 var STORAGE_HIGHLIGHT_MODE = "highlightMode";
 var DEBOUNCE_LIMIT = 500;
@@ -22,7 +21,6 @@ var lastHighlight = 0; // for debouncing purposes
 
 $(window).load(function() {
     setTimeout(function() {
-        masha.init();
         masha.restoreHighlights();
         comment.restoreComments();
 

@@ -15,14 +15,9 @@ var REGEXP = "[^\\s,;:\u2013.!?<>\u2026\\n\u00a0\\*]+";
 var HIGHLIGHT_CLASS = "chronoteHighlight";
 var StorageArea = chrome.storage.local;
 
-module.exports.init = init;
 module.exports.highlightSelection = highlightSelection;
 module.exports.restoreHighlights = restoreHighlights;
 module.exports.storeHighlights = storeHighlights;
-
-function init() {
-    rangy.init();
-}
 
 function highlightSelection() {
     var rangySel = rangy.getSelection();
@@ -45,6 +40,7 @@ function highlightSelection() {
  * Restores previously highlighted text from storage
  */
 function restoreHighlights() {
+    rangy.init();
     var url = window.location.href;
     StorageArea.get(url, function(items) {
         var sels = items[url] || [];

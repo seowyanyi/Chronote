@@ -7,6 +7,7 @@
  */
 var Mustache = require('mustache');
 var $ = require('jquery');
+require('./lib/pep');
 module.exports.addComment = addComment;
 module.exports.restoreComments = restoreComments;
 
